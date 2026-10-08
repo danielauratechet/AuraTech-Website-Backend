@@ -4,7 +4,12 @@ namespace AuratechBackend.Core.Results;
 
 public class Result
 {
-    protected Result(bool isSuccess, Error error, IReadOnlyList<ValidationError>? validationErrors = null, int? statusCode = null)
+    protected Result(
+        bool isSuccess,
+        Error error,
+        IReadOnlyList<ValidationError>? validationErrors = null,
+        int? statusCode = null,
+        string? message = null)
     {
         if (isSuccess && error != Error.None)
         {
@@ -20,6 +25,7 @@ public class Result
         Error = error;
         ValidationErrors = validationErrors ?? [];
         StatusCode = statusCode;
+        Message = isSuccess ? message : null;
     }
 
     public bool IsSuccess { get; }
@@ -32,7 +38,10 @@ public class Result
 
     public int? StatusCode { get; }
 
-    public static Result Success() => new(true, Error.None, statusCode: StatusCodes.Status200OK);
+    public string? Message { get; }
+
+    public static Result Success(string message = "Operation completed successfully")
+        => new(true, Error.None, statusCode: StatusCodes.Status200OK, message: message);
 
     public static Result Failure(Error error, int statusCode = StatusCodes.Status400BadRequest)
         => new(false, error, statusCode: statusCode);
@@ -58,8 +67,8 @@ public class Result<T> : Result
 {
     private readonly T? _value;
 
-    private Result(T value)
-        : base(true, Error.None, statusCode: StatusCodes.Status200OK)
+    private Result(T value, string message = "Operation completed successfully")
+        : base(true, Error.None, statusCode: StatusCodes.Status200OK, message: message)
     {
         _value = value;
     }
@@ -74,7 +83,8 @@ public class Result<T> : Result
         ? _value!
         : throw new InvalidOperationException("Cannot access the value of a failed result.");
 
-    public static Result<T> Success(T value) => new(value);
+    public static Result<T> Success(T value, string message = "Operation completed successfully")
+        => new(value, message);
 
     public new static Result<T> Failure(Error error, int statusCode = StatusCodes.Status400BadRequest)
         => new(error, null, statusCode);

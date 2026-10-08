@@ -1,0 +1,12 @@
+bin/
+obj/
+artifacts/
+.git/
+.gitignore
+.vs/
+*.user
+*.swp
+Dockerfile
+.dockerignore
+README.md
+**/*.md

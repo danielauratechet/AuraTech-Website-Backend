@@ -1,3 +1,4 @@
+using AuratechBackend.Data.Seed;
 using AuratechBackend.DI;
 using AuratechBackend.Filters;
 using AuratechBackend.Middleware;
@@ -5,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi;
 using Serilog;
 using Serilog.Events;
+using System.Text.Json.Serialization;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -24,16 +26,29 @@ try
 
     builder.Services.AddObservability(builder.Configuration, builder.Environment);
     builder.Services.AddData(builder.Configuration);
-    builder.Services.AddServices();
+    builder.Services.AddAuth(builder.Configuration);
+    builder.Services.AddServices(builder.Configuration);
 
     builder.Services.AddControllers(options =>
     {
         options.Filters.Add<FluentValidationFilter>();
+    })
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
     builder.Services.Configure<ApiBehaviorOptions>(options =>
     {
         options.SuppressModelStateInvalidFilter = true;
+    });
+
+    builder.Services.AddCors(options =>
+    {
+        options.AddDefaultPolicy(policy =>
+            policy.AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader());
     });
 
     builder.Services.AddEndpointsApiExplorer();
@@ -53,13 +68,11 @@ try
             Scheme = "bearer",
             BearerFormat = "JWT",
             In = ParameterLocation.Header,
-            Description = "JWT Authorization header using the Bearer scheme."
+            Description = "Paste the JWT only (do not include the 'Bearer ' prefix). Click Authorize, then Close."
         });
 
-        options.AddSecurityRequirement(_ => new OpenApiSecurityRequirement
-        {
-            [new OpenApiSecuritySchemeReference("Bearer")] = []
-        });
+        options.DocumentFilter<SwaggerBearerDocumentFilter>();
+        options.OperationFilter<SwaggerBearerOperationFilter>();
     });
 
     var app = builder.Build();
@@ -94,13 +107,28 @@ try
         });
     }
 
-    app.UseHttpsRedirection();
+    app.UseCors();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseHttpsRedirection();
+    }
+
+    app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();
 
+    await IdentitySeed.MigrateAsync(app.Services);
+
+    var seedEnabled = app.Configuration.GetValue("Seed:Enabled", false);
+    if (app.Environment.IsDevelopment() || seedEnabled)
+    {
+        await IdentitySeed.SeedAsync(app.Services);
+    }
+
     app.Run();
 }
-catch (Exception ex)
+catch (Exception ex) when (ex is not HostAbortedException)
 {
     Log.Fatal(ex, "Application terminated unexpectedly");
 }

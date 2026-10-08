@@ -15,7 +15,7 @@ public abstract class BaseApiController : ControllerBase
         if (result.IsSuccess)
         {
             var statusCode = successStatusCode ?? result.StatusCode ?? StatusCodes.Status200OK;
-            return StatusCode(statusCode, ApiResponse.Ok(traceId: traceId));
+            return StatusCode(statusCode, ApiResponse.Ok(message: result.Message, traceId: traceId));
         }
 
         return StatusCode(ResolveFailureStatusCode(result), ToFailureResponse(result, traceId));
@@ -28,7 +28,7 @@ public abstract class BaseApiController : ControllerBase
         if (result.IsSuccess)
         {
             var statusCode = successStatusCode ?? result.StatusCode ?? StatusCodes.Status200OK;
-            return StatusCode(statusCode, ApiResponse<T>.Ok(result.Value, traceId: traceId));
+            return StatusCode(statusCode, ApiResponse<T>.Ok(result.Value, message: result.Message, traceId: traceId));
         }
 
         return StatusCode(ResolveFailureStatusCode(result), ToFailureResponse(result, traceId));
