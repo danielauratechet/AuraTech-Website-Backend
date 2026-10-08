@@ -68,4 +68,4 @@ jobs:
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
             cd "${{ env.VPS_INFRA_PATH }}"
             docker compose pull api
-            docker compose up -d api
+            docker compose up -d --no-build --pull always api
