@@ -70,6 +70,12 @@ public static class AuthServiceCollectionExtensions
                 policy.Requirements.Add(new PermissionRequirement(PermissionCodes.KycWrite)));
             options.AddPolicy(AuthPolicies.KycUpdate, policy =>
                 policy.Requirements.Add(new PermissionRequirement(PermissionCodes.KycUpdate)));
+            options.AddPolicy(AuthPolicies.KycPresign, policy =>
+                policy.RequireAssertion(ctx =>
+                    ctx.User.Claims.Any(c =>
+                        c.Type == AppClaimTypes.Permission &&
+                        (string.Equals(c.Value, PermissionCodes.KycWrite, StringComparison.OrdinalIgnoreCase) ||
+                         string.Equals(c.Value, PermissionCodes.KycUpdate, StringComparison.OrdinalIgnoreCase)))));
             options.AddPolicy(AuthPolicies.KycView, policy =>
                 policy.Requirements.Add(new PermissionRequirement(PermissionCodes.KycView)));
             options.AddPolicy(AuthPolicies.KycApprove, policy =>

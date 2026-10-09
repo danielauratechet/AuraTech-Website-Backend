@@ -3,6 +3,7 @@ using AuratechBackend.Services.Auth;
 using AuratechBackend.Services.Email;
 using AuratechBackend.Services.Kyc;
 using AuratechBackend.Services.Roles;
+using AuratechBackend.Services.Storage;
 using AuratechBackend.Services.Users;
 using FluentValidation;
 
@@ -16,7 +17,17 @@ public static class ServiceCollectionExtensions
         services.AddScoped<FluentValidationFilter>();
 
         services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.SectionName));
+        services.AddHttpClient("Bird", client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
         services.AddScoped<IEmailSender, EmailService>();
+
+        services.Configure<SupabaseOptions>(configuration.GetSection(SupabaseOptions.SectionName));
+        services.AddHttpClient<ISupabaseStorageService, SupabaseStorageService>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
 
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IPasswordLinkService, PasswordLinkService>();

@@ -11,6 +11,7 @@ public static class AuthPolicies
     public const string KycRead = "Permission:kyc.read";
     public const string KycWrite = "Permission:kyc.write";
     public const string KycUpdate = "Permission:kyc.update";
+    public const string KycPresign = "Permission:kyc.presign";
     public const string KycView = "Permission:kyc.view";
     public const string KycApprove = "Permission:kyc.approve";
     public const string KycReject = "Permission:kyc.reject";

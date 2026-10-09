@@ -1,24 +1,25 @@
-using System.Text.RegularExpressions;
-using MailKit.Net.Smtp;
-using MailKit.Security;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
-using MimeKit;
 
 namespace AuratechBackend.Services.Email;
 
 public sealed class EmailService : IEmailSender
 {
+    private const string HttpClientName = "Bird";
+
     private readonly EmailSettings _settings;
-    private readonly IHostEnvironment _environment;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<EmailService> _logger;
 
     public EmailService(
         IOptions<EmailSettings> options,
-        IHostEnvironment environment,
+        IHttpClientFactory httpClientFactory,
         ILogger<EmailService> logger)
     {
         _settings = options.Value;
-        _environment = environment;
+        _httpClientFactory = httpClientFactory;
         _logger = logger;
     }
 
@@ -36,69 +37,83 @@ public sealed class EmailService : IEmailSender
 
         try
         {
-            if (_environment.IsDevelopment())
+            if (string.IsNullOrWhiteSpace(_settings.ApiKey))
             {
-                _logger.LogInformation("=== EMAIL (Suppressed - {Environment}) ===", _environment.EnvironmentName);
-                _logger.LogInformation("To: {To}", toEmail);
-                _logger.LogInformation("Subject: {Subject}", subject);
-                _logger.LogInformation("Body Length: {Length} characters", htmlBody?.Length ?? 0);
+                throw new InvalidOperationException("Bird API key is not configured (EmailSettings:ApiKey).");
+            }
 
-                try
+            var baseUrl = (_settings.ApiBaseUrl ?? "https://eu1.platform.bird.com/v1").TrimEnd('/');
+            var fromEmail = _settings.FromEmail ?? "noreply@auratech.local";
+            var fromName = _settings.FromName ?? "AuraTech";
+
+            var payload = new BirdEmailRequest
+            {
+                From = new BirdFrom
                 {
-                    var match = Regex.Match(htmlBody ?? string.Empty, @"https?://[^""'\s<>]+");
-                    if (match.Success)
-                    {
-                        _logger.LogInformation("Detected Link: {Link}", match.Value);
-                    }
-                }
-                catch
-                {
-                    // ignore regex issues
-                }
+                    Email = fromEmail,
+                    Name = fromName
+                },
+                To = [toEmail],
+                Subject = subject ?? string.Empty,
+                Html = htmlBody ?? string.Empty,
+                Category = "transactional"
+            };
 
-                _logger.LogInformation("Email sending skipped (Development/Local environment).\n================================");
-                return;
-            }
+            var client = _httpClientFactory.CreateClient(HttpClientName);
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/email/messages");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _settings.ApiKey);
+            request.Content = JsonContent.Create(payload);
 
-            var message = new MimeMessage();
-            message.From.Add(new MailboxAddress(
-                _settings.FromName ?? "AuraTech",
-                _settings.FromEmail ?? "noreply@auratech.local"));
-            message.To.Add(new MailboxAddress(string.Empty, toEmail));
-            message.Subject = subject ?? string.Empty;
-            message.Body = new BodyBuilder { HtmlBody = htmlBody ?? string.Empty }.ToMessageBody();
+            using var response = await client.SendAsync(request, cancellationToken);
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
 
-            using var client = new SmtpClient();
-            client.ServerCertificateValidationCallback = (_, _, _, _) => true;
-
-            if (string.IsNullOrWhiteSpace(_settings.SmtpHost))
+            if (!response.IsSuccessStatusCode)
             {
-                throw new InvalidOperationException("EmailSettings:SmtpHost is not configured.");
+                _logger.LogError(
+                    "Bird rejected email to {To}. Status={StatusCode}, Body={Body}",
+                    toEmail,
+                    (int)response.StatusCode,
+                    responseBody);
+                throw new InvalidOperationException(
+                    $"Bird email send failed with status {(int)response.StatusCode}.");
             }
 
-            var smtpPort = int.TryParse(_settings.SmtpPort, out var port) ? port : 587;
-            var enableSsl = !bool.TryParse(_settings.EnableSsl, out var ssl) || ssl;
-
-            await client.ConnectAsync(
-                _settings.SmtpHost,
-                smtpPort,
-                enableSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None,
-                cancellationToken);
-
-            if (!string.IsNullOrWhiteSpace(_settings.SmtpUser) && !string.IsNullOrWhiteSpace(_settings.SmtpPassword))
-            {
-                await client.AuthenticateAsync(_settings.SmtpUser, _settings.SmtpPassword, cancellationToken);
-            }
-
-            await client.SendAsync(message, cancellationToken);
-            await client.DisconnectAsync(true, cancellationToken);
-
-            _logger.LogInformation("Email sent successfully to {To}", toEmail);
+            _logger.LogInformation(
+                "Bird accepted message for {To}. Status={StatusCode}",
+                toEmail,
+                (int)response.StatusCode);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send email to {To}", toEmail);
             throw;
         }
+    }
+
+    private sealed class BirdEmailRequest
+    {
+        [JsonPropertyName("from")]
+        public required BirdFrom From { get; init; }
+
+        [JsonPropertyName("to")]
+        public required string[] To { get; init; }
+
+        [JsonPropertyName("subject")]
+        public required string Subject { get; init; }
+
+        [JsonPropertyName("html")]
+        public required string Html { get; init; }
+
+        [JsonPropertyName("category")]
+        public required string Category { get; init; }
+    }
+
+    private sealed class BirdFrom
+    {
+        [JsonPropertyName("email")]
+        public required string Email { get; init; }
+
+        [JsonPropertyName("name")]
+        public required string Name { get; init; }
     }
 }
