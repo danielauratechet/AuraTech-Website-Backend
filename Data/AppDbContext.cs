@@ -28,6 +28,10 @@ public class AppDbContext : IdentityDbContext<
 
     public DbSet<CustomerKyc> CustomerKycs => Set<CustomerKyc>();
 
+    public DbSet<CampaignType> CampaignTypes => Set<CampaignType>();
+
+    public DbSet<Region> Regions => Set<Region>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

@@ -51,6 +51,7 @@ public sealed class AuthService : IAuthService
             PhoneNumber = request.PhoneNumber.Trim(),
             Type = OrganizationType.Customer,
             IsActive = true,
+            IsSelfManagedCampaign = request.IsSelfManagedCampaign,
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
         _db.Organizations.Add(organization);
@@ -235,6 +236,7 @@ public sealed class AuthService : IAuthService
                 OrganizationId = organization.Id,
                 OrganizationName = organization.Name,
                 OrganizationType = organization.Type,
+                IsSelfManagedCampaign = organization.IsSelfManagedCampaign,
                 Roles = roles,
                 Permissions = permissions,
                 KycStatus = kycStatus,

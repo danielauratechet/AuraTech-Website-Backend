@@ -29,6 +29,8 @@ public static class IdentitySeed
         var logger = sp.GetRequiredService<ILoggerFactory>().CreateLogger("IdentitySeed");
 
         await PermissionCatalogSeed.EnsureAsync(db, cancellationToken);
+        await CampaignTypeSeed.EnsureAsync(db, cancellationToken);
+        await RegionSeed.EnsureAsync(db, cancellationToken);
 
         var platformOrgName = configuration["Seed:PlatformOrganizationName"] ?? "AuraTech Platform";
         var adminEmail = configuration["Seed:AdminEmail"] ?? "admin@auratech.local";

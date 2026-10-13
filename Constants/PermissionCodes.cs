@@ -15,6 +15,11 @@ public static class PermissionCodes
     public const string KycApprove = "kyc.approve";
     public const string KycReject = "kyc.reject";
 
+    public const string CampaignTypesRead = "campaign-types.read";
+    public const string CampaignTypesManage = "campaign-types.manage";
+    public const string RegionsRead = "regions.read";
+    public const string RegionsManage = "regions.manage";
+
     public static readonly IReadOnlyList<(string Code, string Name, string Description)> Catalog =
     [
         (UsersRead, "Read users", "View users within the organization"),
@@ -27,6 +32,10 @@ public static class PermissionCodes
         (KycUpdate, "Update KYC", "Update or resubmit KYC documents"),
         (KycView, "View KYC", "View customer KYC submissions (platform)"),
         (KycApprove, "Approve KYC", "Approve customer KYC submissions"),
-        (KycReject, "Reject KYC", "Reject customer KYC submissions with a comment")
+        (KycReject, "Reject KYC", "Reject customer KYC submissions with a comment"),
+        (CampaignTypesRead, "Read campaign types", "View campaign type catalog"),
+        (CampaignTypesManage, "Manage campaign types", "Create, update, and activate/deactivate campaign types"),
+        (RegionsRead, "Read regions", "View region catalog"),
+        (RegionsManage, "Manage regions", "Create, update, and activate/deactivate regions")
     ];
 }

@@ -80,12 +80,18 @@ public static class OrganizationRoleBootstrap
                     PermissionCodes.OrgManage,
                     PermissionCodes.KycView,
                     PermissionCodes.KycApprove,
-                    PermissionCodes.KycReject
+                    PermissionCodes.KycReject,
+                    PermissionCodes.CampaignTypesRead,
+                    PermissionCodes.CampaignTypesManage,
+                    PermissionCodes.RegionsRead,
+                    PermissionCodes.RegionsManage
                 ],
                 Roles.PlatformOperator =>
                 [
                     PermissionCodes.UsersRead,
-                    PermissionCodes.KycView
+                    PermissionCodes.KycView,
+                    PermissionCodes.CampaignTypesRead,
+                    PermissionCodes.RegionsRead
                 ],
                 _ => []
             };
@@ -101,12 +107,16 @@ public static class OrganizationRoleBootstrap
                 PermissionCodes.OrgManage,
                 PermissionCodes.KycRead,
                 PermissionCodes.KycWrite,
-                PermissionCodes.KycUpdate
+                PermissionCodes.KycUpdate,
+                PermissionCodes.CampaignTypesRead,
+                PermissionCodes.RegionsRead
             ],
             Roles.CustomerUser =>
             [
                 PermissionCodes.UsersRead,
-                PermissionCodes.KycRead
+                PermissionCodes.KycRead,
+                PermissionCodes.CampaignTypesRead,
+                PermissionCodes.RegionsRead
             ],
             _ => []
         };

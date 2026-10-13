@@ -15,4 +15,9 @@ public static class AuthPolicies
     public const string KycView = "Permission:kyc.view";
     public const string KycApprove = "Permission:kyc.approve";
     public const string KycReject = "Permission:kyc.reject";
+
+    public const string CampaignTypesRead = "Permission:campaign-types.read";
+    public const string CampaignTypesManage = "Permission:campaign-types.manage";
+    public const string RegionsRead = "Permission:regions.read";
+    public const string RegionsManage = "Permission:regions.manage";
 }

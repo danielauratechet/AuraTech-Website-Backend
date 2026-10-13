@@ -18,6 +18,8 @@ public sealed class MeResponse
 
     public OrganizationType OrganizationType { get; init; }
 
+    public bool IsSelfManagedCampaign { get; init; }
+
     public IReadOnlyList<string> Roles { get; init; } = [];
 
     public IReadOnlyList<string> Permissions { get; init; } = [];

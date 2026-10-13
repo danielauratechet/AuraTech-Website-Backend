@@ -23,6 +23,10 @@ public sealed class OrganizationConfiguration : IEntityTypeConfiguration<Organiz
         builder.Property(x => x.Type)
             .IsRequired();
 
+        builder.Property(x => x.IsSelfManagedCampaign)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.HasIndex(x => new { x.Type, x.Name });
     }
 }

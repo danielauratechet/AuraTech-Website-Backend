@@ -14,6 +14,8 @@ public class Organization
 
     public bool IsActive { get; set; } = true;
 
+    public bool IsSelfManagedCampaign { get; set; }
+
     public DateTimeOffset CreatedAtUtc { get; set; }
 
     public DateTimeOffset? UpdatedAtUtc { get; set; }

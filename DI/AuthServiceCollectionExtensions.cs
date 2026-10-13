@@ -82,6 +82,14 @@ public static class AuthServiceCollectionExtensions
                 policy.Requirements.Add(new PermissionRequirement(PermissionCodes.KycApprove)));
             options.AddPolicy(AuthPolicies.KycReject, policy =>
                 policy.Requirements.Add(new PermissionRequirement(PermissionCodes.KycReject)));
+            options.AddPolicy(AuthPolicies.CampaignTypesRead, policy =>
+                policy.Requirements.Add(new PermissionRequirement(PermissionCodes.CampaignTypesRead)));
+            options.AddPolicy(AuthPolicies.CampaignTypesManage, policy =>
+                policy.Requirements.Add(new PermissionRequirement(PermissionCodes.CampaignTypesManage)));
+            options.AddPolicy(AuthPolicies.RegionsRead, policy =>
+                policy.Requirements.Add(new PermissionRequirement(PermissionCodes.RegionsRead)));
+            options.AddPolicy(AuthPolicies.RegionsManage, policy =>
+                policy.Requirements.Add(new PermissionRequirement(PermissionCodes.RegionsManage)));
             options.AddPolicy(AuthPolicies.PlatformOrganization, policy =>
                 policy.Requirements.Add(new OrganizationTypeRequirement(OrganizationType.Platform)));
             options.AddPolicy(AuthPolicies.CustomerOrganization, policy =>
