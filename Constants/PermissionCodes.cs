@@ -20,6 +20,10 @@ public static class PermissionCodes
     public const string RegionsRead = "regions.read";
     public const string RegionsManage = "regions.manage";
 
+    public const string CampaignsRead = "campaigns.read";
+    public const string CampaignsWrite = "campaigns.write";
+    public const string CampaignsLaunch = "campaigns.launch";
+
     public static readonly IReadOnlyList<(string Code, string Name, string Description)> Catalog =
     [
         (UsersRead, "Read users", "View users within the organization"),
@@ -36,6 +40,9 @@ public static class PermissionCodes
         (CampaignTypesRead, "Read campaign types", "View campaign type catalog"),
         (CampaignTypesManage, "Manage campaign types", "Create, update, and activate/deactivate campaign types"),
         (RegionsRead, "Read regions", "View region catalog"),
-        (RegionsManage, "Manage regions", "Create, update, and activate/deactivate regions")
+        (RegionsManage, "Manage regions", "Create, update, and activate/deactivate regions"),
+        (CampaignsRead, "Read campaigns", "View campaigns and analytics"),
+        (CampaignsWrite, "Write campaigns", "Create and update campaign drafts"),
+        (CampaignsLaunch, "Launch campaigns", "Launch a completed campaign draft")
     ];
 }

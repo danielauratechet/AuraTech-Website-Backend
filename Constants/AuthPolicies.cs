@@ -20,4 +20,9 @@ public static class AuthPolicies
     public const string CampaignTypesManage = "Permission:campaign-types.manage";
     public const string RegionsRead = "Permission:regions.read";
     public const string RegionsManage = "Permission:regions.manage";
+
+    public const string CampaignsRead = "Permission:campaigns.read";
+    public const string CampaignsWrite = "Permission:campaigns.write";
+    public const string CampaignsLaunch = "Permission:campaigns.launch";
+    public const string CampaignsPresign = "Permission:campaigns.presign";
 }

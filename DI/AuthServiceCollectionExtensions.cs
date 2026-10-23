@@ -34,6 +34,9 @@ public static class AuthServiceCollectionExtensions
             })
             .AddJwtBearer(options =>
             {
+                // Keep claim types as issued (org_id, org_type, permission) instead of remapping.
+                options.MapInboundClaims = false;
+
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -43,7 +46,35 @@ public static class AuthServiceCollectionExtensions
                     ValidIssuer = issuer,
                     ValidAudience = audience,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
-                    ClockSkew = TimeSpan.FromMinutes(1)
+                    ClockSkew = TimeSpan.FromMinutes(1),
+                    NameClaimType = "sub",
+                    RoleClaimType = System.Security.Claims.ClaimTypes.Role
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnAuthenticationFailed = context =>
+                    {
+                        var logger = context.HttpContext.RequestServices
+                            .GetRequiredService<ILoggerFactory>()
+                            .CreateLogger("JwtBearer");
+                        logger.LogWarning(
+                            context.Exception,
+                            "JWT authentication failed: {Message}",
+                            context.Exception.Message);
+                        return Task.CompletedTask;
+                    },
+                    OnChallenge = context =>
+                    {
+                        var logger = context.HttpContext.RequestServices
+                            .GetRequiredService<ILoggerFactory>()
+                            .CreateLogger("JwtBearer");
+                        logger.LogDebug(
+                            "JWT challenge: error={Error}, description={Description}",
+                            context.Error,
+                            context.ErrorDescription);
+                        return Task.CompletedTask;
+                    }
                 };
             });
 
@@ -90,6 +121,17 @@ public static class AuthServiceCollectionExtensions
                 policy.Requirements.Add(new PermissionRequirement(PermissionCodes.RegionsRead)));
             options.AddPolicy(AuthPolicies.RegionsManage, policy =>
                 policy.Requirements.Add(new PermissionRequirement(PermissionCodes.RegionsManage)));
+            options.AddPolicy(AuthPolicies.CampaignsRead, policy =>
+                policy.Requirements.Add(new PermissionRequirement(PermissionCodes.CampaignsRead)));
+            options.AddPolicy(AuthPolicies.CampaignsWrite, policy =>
+                policy.Requirements.Add(new PermissionRequirement(PermissionCodes.CampaignsWrite)));
+            options.AddPolicy(AuthPolicies.CampaignsLaunch, policy =>
+                policy.Requirements.Add(new PermissionRequirement(PermissionCodes.CampaignsLaunch)));
+            options.AddPolicy(AuthPolicies.CampaignsPresign, policy =>
+                policy.RequireAssertion(ctx =>
+                    ctx.User.Claims.Any(c =>
+                        c.Type == AppClaimTypes.Permission &&
+                        string.Equals(c.Value, PermissionCodes.CampaignsWrite, StringComparison.OrdinalIgnoreCase))));
             options.AddPolicy(AuthPolicies.PlatformOrganization, policy =>
                 policy.Requirements.Add(new OrganizationTypeRequirement(OrganizationType.Platform)));
             options.AddPolicy(AuthPolicies.CustomerOrganization, policy =>

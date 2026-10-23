@@ -32,6 +32,16 @@ public class AppDbContext : IdentityDbContext<
 
     public DbSet<Region> Regions => Set<Region>();
 
+    public DbSet<Campaign> Campaigns => Set<Campaign>();
+
+    public DbSet<CampaignRegion> CampaignRegions => Set<CampaignRegion>();
+
+    public DbSet<CampaignDailyMetric> CampaignDailyMetrics => Set<CampaignDailyMetric>();
+
+    public DbSet<CampaignDeviceDailyMetric> CampaignDeviceDailyMetrics => Set<CampaignDeviceDailyMetric>();
+
+    public DbSet<CampaignRegionDailyMetric> CampaignRegionDailyMetrics => Set<CampaignRegionDailyMetric>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

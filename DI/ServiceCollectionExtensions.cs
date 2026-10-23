@@ -1,5 +1,6 @@
 using AuratechBackend.Filters;
 using AuratechBackend.Services.Auth;
+using AuratechBackend.Services.Campaigns;
 using AuratechBackend.Services.CampaignTypes;
 using AuratechBackend.Services.Email;
 using AuratechBackend.Services.Kyc;
@@ -39,6 +40,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICustomerKycService, CustomerKycService>();
         services.AddScoped<ICampaignTypeService, CampaignTypeService>();
         services.AddScoped<IRegionService, RegionService>();
+        services.AddScoped<ICampaignService, CampaignService>();
+        services.AddScoped<ICampaignAnalyticsService, CampaignAnalyticsService>();
 
         return services;
     }

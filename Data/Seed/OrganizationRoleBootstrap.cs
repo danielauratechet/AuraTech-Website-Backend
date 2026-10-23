@@ -109,14 +109,18 @@ public static class OrganizationRoleBootstrap
                 PermissionCodes.KycWrite,
                 PermissionCodes.KycUpdate,
                 PermissionCodes.CampaignTypesRead,
-                PermissionCodes.RegionsRead
+                PermissionCodes.RegionsRead,
+                PermissionCodes.CampaignsRead,
+                PermissionCodes.CampaignsWrite,
+                PermissionCodes.CampaignsLaunch
             ],
             Roles.CustomerUser =>
             [
                 PermissionCodes.UsersRead,
                 PermissionCodes.KycRead,
                 PermissionCodes.CampaignTypesRead,
-                PermissionCodes.RegionsRead
+                PermissionCodes.RegionsRead,
+                PermissionCodes.CampaignsRead
             ],
             _ => []
         };

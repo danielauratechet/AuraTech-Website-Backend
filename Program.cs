@@ -68,7 +68,14 @@ try
             Scheme = "bearer",
             BearerFormat = "JWT",
             In = ParameterLocation.Header,
-            Description = "Paste the JWT only (do not include the 'Bearer ' prefix). Click Authorize, then Close."
+            Description =
+                "Paste only the accessToken value from POST /api/v1/auth/login " +
+                "(do not include the 'Bearer ' prefix). Click Authorize, then Close."
+        });
+
+        options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+        {
+            [new OpenApiSecuritySchemeReference("Bearer", document)] = []
         });
 
         options.DocumentFilter<SwaggerBearerDocumentFilter>();
@@ -109,7 +116,8 @@ try
 
     app.UseCors();
 
-    if (app.Environment.IsDevelopment())
+    // Skip HTTPS redirection in Development so Swagger on HTTP does not drop Authorization.
+    if (!app.Environment.IsDevelopment())
     {
         app.UseHttpsRedirection();
     }
