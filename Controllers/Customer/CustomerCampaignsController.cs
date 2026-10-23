@@ -152,15 +152,15 @@ public sealed class CustomerCampaignsController : BaseApiController
     [HttpPost("{id:int}/launch")]
     [Authorize(Policy = AuthPolicies.CampaignsLaunch)]
     public async Task<IActionResult> Launch(int id, CancellationToken cancellationToken)
-        => FromResult(await _campaignService.LaunchAsync(User.GetOrganizationId(), id, cancellationToken));
+        => FromResult(await _campaignService.LaunchAsync(User.GetOrganizationId(), User.GetUserId(), id, cancellationToken));
 
     [HttpPost("{id:int}/pause")]
     [Authorize(Policy = AuthPolicies.CampaignsWrite)]
     public async Task<IActionResult> Pause(int id, CancellationToken cancellationToken)
-        => FromResult(await _campaignService.PauseAsync(User.GetOrganizationId(), id, cancellationToken));
+        => FromResult(await _campaignService.PauseAsync(User.GetOrganizationId(), User.GetUserId(), id, cancellationToken));
 
     [HttpPost("{id:int}/resume")]
     [Authorize(Policy = AuthPolicies.CampaignsWrite)]
     public async Task<IActionResult> Resume(int id, CancellationToken cancellationToken)
-        => FromResult(await _campaignService.ResumeAsync(User.GetOrganizationId(), id, cancellationToken));
+        => FromResult(await _campaignService.ResumeAsync(User.GetOrganizationId(), User.GetUserId(), id, cancellationToken));
 }

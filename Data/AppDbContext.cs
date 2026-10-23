@@ -42,6 +42,8 @@ public class AppDbContext : IdentityDbContext<
 
     public DbSet<CampaignRegionDailyMetric> CampaignRegionDailyMetrics => Set<CampaignRegionDailyMetric>();
 
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

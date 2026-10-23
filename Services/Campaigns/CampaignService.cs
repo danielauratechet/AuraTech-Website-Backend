@@ -1,3 +1,4 @@
+using AuratechBackend.Constants;
 using AuratechBackend.Core.Enums;
 using AuratechBackend.Core.Responses;
 using AuratechBackend.Core.Results;
@@ -6,6 +7,7 @@ using AuratechBackend.Data.Dtos.Requests;
 using AuratechBackend.Data.Dtos.Responses;
 using AuratechBackend.Data.Dtos.Validators;
 using AuratechBackend.Data.Entities;
+using AuratechBackend.Services.Audit;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuratechBackend.Services.Campaigns;
@@ -16,10 +18,12 @@ public sealed class CampaignService : ICampaignService
     private const decimal DaysPerMonthEstimate = 30.5m;
 
     private readonly AppDbContext _db;
+    private readonly IAuditLogService _auditLogService;
 
-    public CampaignService(AppDbContext db)
+    public CampaignService(AppDbContext db, IAuditLogService auditLogService)
     {
         _db = db;
+        _auditLogService = auditLogService;
     }
 
     public async Task<Result<CampaignResponse>> CreateAsync(
@@ -317,6 +321,7 @@ public sealed class CampaignService : ICampaignService
 
     public async Task<Result<CampaignResponse>> LaunchAsync(
         int organizationId,
+        int actorUserId,
         int campaignId,
         CancellationToken cancellationToken = default)
     {
@@ -347,6 +352,14 @@ public sealed class CampaignService : ICampaignService
 
         await _db.SaveChangesAsync(cancellationToken);
 
+        await WriteCampaignAuditAsync(
+            organizationId,
+            actorUserId,
+            AuditActionCodes.CampaignLaunched,
+            $"launched \"{campaign.Name}\" campaign.",
+            campaign,
+            cancellationToken);
+
         return Result<CampaignResponse>.Success(
             await MapResponseAsync(campaign.Id, organizationId, null, null, cancellationToken),
             "Campaign launched successfully.");
@@ -354,6 +367,7 @@ public sealed class CampaignService : ICampaignService
 
     public async Task<Result<CampaignResponse>> PauseAsync(
         int organizationId,
+        int actorUserId,
         int campaignId,
         CancellationToken cancellationToken = default)
     {
@@ -374,6 +388,14 @@ public sealed class CampaignService : ICampaignService
         campaign.UpdatedAtUtc = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(cancellationToken);
 
+        await WriteCampaignAuditAsync(
+            organizationId,
+            actorUserId,
+            AuditActionCodes.CampaignPaused,
+            $"paused \"{campaign.Name}\" campaign.",
+            campaign,
+            cancellationToken);
+
         return Result<CampaignResponse>.Success(
             await MapResponseAsync(campaign.Id, organizationId, null, null, cancellationToken),
             "Campaign paused successfully.");
@@ -381,6 +403,7 @@ public sealed class CampaignService : ICampaignService
 
     public async Task<Result<CampaignResponse>> ResumeAsync(
         int organizationId,
+        int actorUserId,
         int campaignId,
         CancellationToken cancellationToken = default)
     {
@@ -401,9 +424,43 @@ public sealed class CampaignService : ICampaignService
         campaign.UpdatedAtUtc = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(cancellationToken);
 
+        await WriteCampaignAuditAsync(
+            organizationId,
+            actorUserId,
+            AuditActionCodes.CampaignResumed,
+            $"resumed \"{campaign.Name}\" campaign.",
+            campaign,
+            cancellationToken);
+
         return Result<CampaignResponse>.Success(
             await MapResponseAsync(campaign.Id, organizationId, null, null, cancellationToken),
             "Campaign resumed successfully.");
+    }
+
+    private async Task WriteCampaignAuditAsync(
+        int organizationId,
+        int actorUserId,
+        string actionCode,
+        string actionSummary,
+        Campaign campaign,
+        CancellationToken cancellationToken)
+    {
+        var actor = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == actorUserId, cancellationToken);
+        await _auditLogService.WriteAsync(new AuditLogWriteRequest
+        {
+            OrganizationId = organizationId,
+            ActorUserId = actorUserId,
+            ActorDisplayName = AuditActorNames.Format(actor),
+            ActionCode = actionCode,
+            ActionSummary = actionSummary,
+            HighlightedTarget = campaign.Name,
+            Category = AuditLogCategory.Campaign,
+            Status = AuditLogStatus.Success,
+            ResourceType = "Campaign",
+            ResourceId = campaign.Id.ToString(),
+            LinkPath = "/dashboard/campaigns",
+            LinkText = "View Campaign"
+        }, cancellationToken);
     }
 
     private static Result<TOut> MapFailure<TOut>(Result failed)

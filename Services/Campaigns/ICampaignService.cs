@@ -48,16 +48,19 @@ public interface ICampaignService
 
     Task<Result<CampaignResponse>> LaunchAsync(
         int organizationId,
+        int actorUserId,
         int campaignId,
         CancellationToken cancellationToken = default);
 
     Task<Result<CampaignResponse>> PauseAsync(
         int organizationId,
+        int actorUserId,
         int campaignId,
         CancellationToken cancellationToken = default);
 
     Task<Result<CampaignResponse>> ResumeAsync(
         int organizationId,
+        int actorUserId,
         int campaignId,
         CancellationToken cancellationToken = default);
 }

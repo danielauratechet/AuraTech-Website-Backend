@@ -84,14 +84,16 @@ public static class OrganizationRoleBootstrap
                     PermissionCodes.CampaignTypesRead,
                     PermissionCodes.CampaignTypesManage,
                     PermissionCodes.RegionsRead,
-                    PermissionCodes.RegionsManage
+                    PermissionCodes.RegionsManage,
+                    PermissionCodes.AuditLogsRead
                 ],
                 Roles.PlatformOperator =>
                 [
                     PermissionCodes.UsersRead,
                     PermissionCodes.KycView,
                     PermissionCodes.CampaignTypesRead,
-                    PermissionCodes.RegionsRead
+                    PermissionCodes.RegionsRead,
+                    PermissionCodes.AuditLogsRead
                 ],
                 _ => []
             };
@@ -112,7 +114,8 @@ public static class OrganizationRoleBootstrap
                 PermissionCodes.RegionsRead,
                 PermissionCodes.CampaignsRead,
                 PermissionCodes.CampaignsWrite,
-                PermissionCodes.CampaignsLaunch
+                PermissionCodes.CampaignsLaunch,
+                PermissionCodes.AuditLogsRead
             ],
             Roles.CustomerUser =>
             [

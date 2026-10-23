@@ -6,6 +6,7 @@ using AuratechBackend.Data;
 using AuratechBackend.Data.Dtos.Requests;
 using AuratechBackend.Data.Dtos.Responses;
 using AuratechBackend.Data.Entities;
+using AuratechBackend.Services.Audit;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuratechBackend.Services.Kyc;
@@ -13,10 +14,12 @@ namespace AuratechBackend.Services.Kyc;
 public sealed class CustomerKycService : ICustomerKycService
 {
     private readonly AppDbContext _db;
+    private readonly IAuditLogService _auditLogService;
 
-    public CustomerKycService(AppDbContext db)
+    public CustomerKycService(AppDbContext db, IAuditLogService auditLogService)
     {
         _db = db;
+        _auditLogService = auditLogService;
     }
 
     public async Task<Result<CustomerKycResponse>> GetForOrganizationAsync(
@@ -38,6 +41,7 @@ public sealed class CustomerKycService : ICustomerKycService
 
     public async Task<Result<CustomerKycResponse>> CreateAsync(
         int organizationId,
+        int actorUserId,
         SubmitCustomerKycRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -66,12 +70,21 @@ public sealed class CustomerKycService : ICustomerKycService
         _db.CustomerKycs.Add(kyc);
         await _db.SaveChangesAsync(cancellationToken);
 
+        await WriteKycAuditAsync(
+            organizationId,
+            actorUserId,
+            AuditActionCodes.KycSubmitted,
+            "submitted KYC documents for review.",
+            kyc.Id,
+            cancellationToken);
+
         kyc.Organization = orgResult.Value;
         return Result<CustomerKycResponse>.Success(Map(kyc), "KYC submitted successfully.");
     }
 
     public async Task<Result<CustomerKycResponse>> UpdateAsync(
         int organizationId,
+        int actorUserId,
         SubmitCustomerKycRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -104,6 +117,15 @@ public sealed class CustomerKycService : ICustomerKycService
         kyc.ReviewedByUserId = null;
 
         await _db.SaveChangesAsync(cancellationToken);
+
+        await WriteKycAuditAsync(
+            organizationId,
+            actorUserId,
+            AuditActionCodes.KycUpdated,
+            "updated and resubmitted KYC documents.",
+            kyc.Id,
+            cancellationToken);
+
         return Result<CustomerKycResponse>.Success(Map(kyc), "KYC updated and resubmitted successfully.");
     }
 
@@ -197,6 +219,15 @@ public sealed class CustomerKycService : ICustomerKycService
         kyc.ReviewedByUserId = reviewerUserId;
 
         await _db.SaveChangesAsync(cancellationToken);
+
+        await WriteKycAuditAsync(
+            organizationId,
+            reviewerUserId,
+            AuditActionCodes.KycApproved,
+            "approved KYC submission.",
+            kyc.Id,
+            cancellationToken);
+
         return Result<CustomerKycResponse>.Success(Map(kyc), "KYC approved successfully.");
     }
 
@@ -232,7 +263,41 @@ public sealed class CustomerKycService : ICustomerKycService
         kyc.ReviewedByUserId = reviewerUserId;
 
         await _db.SaveChangesAsync(cancellationToken);
+
+        await WriteKycAuditAsync(
+            organizationId,
+            reviewerUserId,
+            AuditActionCodes.KycRejected,
+            "rejected KYC submission.",
+            kyc.Id,
+            cancellationToken);
+
         return Result<CustomerKycResponse>.Success(Map(kyc), "KYC rejected successfully.");
+    }
+
+    private async Task WriteKycAuditAsync(
+        int organizationId,
+        int actorUserId,
+        string actionCode,
+        string actionSummary,
+        int kycId,
+        CancellationToken cancellationToken)
+    {
+        var actor = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == actorUserId, cancellationToken);
+        await _auditLogService.WriteAsync(new AuditLogWriteRequest
+        {
+            OrganizationId = organizationId,
+            ActorUserId = actorUserId,
+            ActorDisplayName = AuditActorNames.Format(actor),
+            ActionCode = actionCode,
+            ActionSummary = actionSummary,
+            Category = AuditLogCategory.Security,
+            Status = AuditLogStatus.Success,
+            ResourceType = "CustomerKyc",
+            ResourceId = kycId.ToString(),
+            LinkPath = "/dashboard/kyc",
+            LinkText = "View KYC"
+        }, cancellationToken);
     }
 
     private async Task<Result<Organization>> EnsureCustomerOrganizationAsync(

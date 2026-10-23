@@ -25,4 +25,6 @@ public static class AuthPolicies
     public const string CampaignsWrite = "Permission:campaigns.write";
     public const string CampaignsLaunch = "Permission:campaigns.launch";
     public const string CampaignsPresign = "Permission:campaigns.presign";
+
+    public const string AuditLogsRead = "Permission:audit-logs.read";
 }

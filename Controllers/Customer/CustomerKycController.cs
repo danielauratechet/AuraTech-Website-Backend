@@ -74,11 +74,11 @@ public sealed class CustomerKycController : BaseApiController
     [Authorize(Policy = AuthPolicies.KycWrite)]
     public async Task<IActionResult> Create([FromBody] SubmitCustomerKycRequest request, CancellationToken cancellationToken)
         => FromResult(
-            await _kycService.CreateAsync(User.GetOrganizationId(), request, cancellationToken),
+            await _kycService.CreateAsync(User.GetOrganizationId(), User.GetUserId(), request, cancellationToken),
             StatusCodes.Status201Created);
 
     [HttpPut]
     [Authorize(Policy = AuthPolicies.KycUpdate)]
     public async Task<IActionResult> Update([FromBody] SubmitCustomerKycRequest request, CancellationToken cancellationToken)
-        => FromResult(await _kycService.UpdateAsync(User.GetOrganizationId(), request, cancellationToken));
+        => FromResult(await _kycService.UpdateAsync(User.GetOrganizationId(), User.GetUserId(), request, cancellationToken));
 }

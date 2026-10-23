@@ -37,5 +37,5 @@ public sealed class RolesController : BaseApiController
     [HttpPost]
     [Authorize(Policy = AuthPolicies.RolesManage)]
     public async Task<IActionResult> Create([FromBody] CreateRoleRequest request, CancellationToken cancellationToken)
-        => FromResult(await _roleService.CreateRoleAsync(User.GetOrganizationId(), request, cancellationToken), StatusCodes.Status201Created);
+        => FromResult(await _roleService.CreateRoleAsync(User.GetOrganizationId(), User.GetUserId(), request, cancellationToken), StatusCodes.Status201Created);
 }

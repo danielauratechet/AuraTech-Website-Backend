@@ -6,6 +6,7 @@ using AuratechBackend.Data.Dtos.Requests;
 using AuratechBackend.Data.Dtos.Responses;
 using AuratechBackend.Data.Entities;
 using AuratechBackend.Data.Seed;
+using AuratechBackend.Services.Audit;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuratechBackend.Services.Roles;
@@ -13,10 +14,12 @@ namespace AuratechBackend.Services.Roles;
 public sealed class RoleService : IRoleService
 {
     private readonly AppDbContext _db;
+    private readonly IAuditLogService _auditLogService;
 
-    public RoleService(AppDbContext db)
+    public RoleService(AppDbContext db, IAuditLogService auditLogService)
     {
         _db = db;
+        _auditLogService = auditLogService;
     }
 
     public async Task<Result<IReadOnlyList<PermissionResponse>>> GetPermissionsAsync(CancellationToken cancellationToken = default)
@@ -63,6 +66,7 @@ public sealed class RoleService : IRoleService
 
     public async Task<Result<RoleResponse>> CreateRoleAsync(
         int organizationId,
+        int actorUserId,
         CreateRoleRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -133,6 +137,23 @@ public sealed class RoleService : IRoleService
             PermissionId = p.Id,
             Permission = p
         }).ToList();
+
+        var actor = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == actorUserId, cancellationToken);
+        await _auditLogService.WriteAsync(new AuditLogWriteRequest
+        {
+            OrganizationId = organizationId,
+            ActorUserId = actorUserId,
+            ActorDisplayName = AuditActorNames.Format(actor),
+            ActionCode = AuditActionCodes.RoleCreated,
+            ActionSummary = $"created \"{role.Name}\" role.",
+            HighlightedTarget = role.Name,
+            Category = AuditLogCategory.Permissions,
+            Status = AuditLogStatus.Success,
+            ResourceType = "Role",
+            ResourceId = role.Id.ToString(),
+            LinkPath = "/dashboard/roles",
+            LinkText = "View Roles"
+        }, cancellationToken);
 
         return Result<RoleResponse>.Success(MapRole(role), "Role created successfully.");
     }

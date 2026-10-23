@@ -1,9 +1,11 @@
 using AuratechBackend.Constants;
+using AuratechBackend.Core.Enums;
 using AuratechBackend.Core.Results;
 using AuratechBackend.Data;
 using AuratechBackend.Data.Dtos.Requests;
 using AuratechBackend.Data.Dtos.Responses;
 using AuratechBackend.Data.Entities;
+using AuratechBackend.Services.Audit;
 using AuratechBackend.Services.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -15,15 +17,18 @@ public sealed class OrganizationUserService : IOrganizationUserService
     private readonly AppDbContext _db;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IPasswordLinkService _passwordLinkService;
+    private readonly IAuditLogService _auditLogService;
 
     public OrganizationUserService(
         AppDbContext db,
         UserManager<ApplicationUser> userManager,
-        IPasswordLinkService passwordLinkService)
+        IPasswordLinkService passwordLinkService,
+        IAuditLogService auditLogService)
     {
         _db = db;
         _userManager = userManager;
         _passwordLinkService = passwordLinkService;
+        _auditLogService = auditLogService;
     }
 
     public async Task<Result<IReadOnlyList<UserResponse>>> ListAsync(
@@ -106,6 +111,16 @@ public sealed class OrganizationUserService : IOrganizationUserService
                 "User was created, but we could not send the invitation email. Ask them to use forgot-password, or resend later.");
         }
 
+        var targetName = AuditActorNames.Format(user);
+        await WriteUserAuditAsync(
+            organizationId,
+            actorUserId,
+            AuditActionCodes.UserInvited,
+            $"invited \"{targetName}\" to the organization.",
+            targetName,
+            user.Id,
+            cancellationToken);
+
         return Result<UserResponse>.Success(
             await MapUserAsync(user, cancellationToken),
             "User created successfully. An invitation email has been sent.");
@@ -113,6 +128,7 @@ public sealed class OrganizationUserService : IOrganizationUserService
 
     public async Task<Result<UserResponse>> UpdateAsync(
         int organizationId,
+        int actorUserId,
         int userId,
         UpdateOrganizationUserRequest request,
         CancellationToken cancellationToken = default)
@@ -145,6 +161,17 @@ public sealed class OrganizationUserService : IOrganizationUserService
         _db.UserRoles.Add(new IdentityUserRole<int> { UserId = user.Id, RoleId = role.Id });
 
         await _db.SaveChangesAsync(cancellationToken);
+
+        var targetName = AuditActorNames.Format(user);
+        await WriteUserAuditAsync(
+            organizationId,
+            actorUserId,
+            AuditActionCodes.UserUpdated,
+            $"updated \"{targetName}\" user details.",
+            targetName,
+            user.Id,
+            cancellationToken);
+
         return Result<UserResponse>.Success(await MapUserAsync(user, cancellationToken), "User updated successfully.");
     }
 
@@ -171,11 +198,23 @@ public sealed class OrganizationUserService : IOrganizationUserService
         user.IsActive = false;
         user.UpdatedAtUtc = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(cancellationToken);
+
+        var targetName = AuditActorNames.Format(user);
+        await WriteUserAuditAsync(
+            organizationId,
+            actorUserId,
+            AuditActionCodes.UserDeactivated,
+            $"deactivated \"{targetName}\".",
+            targetName,
+            user.Id,
+            cancellationToken);
+
         return Result.Success("User deactivated successfully.");
     }
 
     public async Task<Result> ActivateAsync(
         int organizationId,
+        int actorUserId,
         int userId,
         CancellationToken cancellationToken = default)
     {
@@ -191,7 +230,45 @@ public sealed class OrganizationUserService : IOrganizationUserService
         user.IsActive = true;
         user.UpdatedAtUtc = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(cancellationToken);
+
+        var targetName = AuditActorNames.Format(user);
+        await WriteUserAuditAsync(
+            organizationId,
+            actorUserId,
+            AuditActionCodes.UserActivated,
+            $"activated \"{targetName}\".",
+            targetName,
+            user.Id,
+            cancellationToken);
+
         return Result.Success("User activated successfully.");
+    }
+
+    private async Task WriteUserAuditAsync(
+        int organizationId,
+        int actorUserId,
+        string actionCode,
+        string actionSummary,
+        string highlightedTarget,
+        int resourceUserId,
+        CancellationToken cancellationToken)
+    {
+        var actor = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == actorUserId, cancellationToken);
+        await _auditLogService.WriteAsync(new AuditLogWriteRequest
+        {
+            OrganizationId = organizationId,
+            ActorUserId = actorUserId,
+            ActorDisplayName = AuditActorNames.Format(actor),
+            ActionCode = actionCode,
+            ActionSummary = actionSummary,
+            HighlightedTarget = highlightedTarget,
+            Category = AuditLogCategory.Permissions,
+            Status = AuditLogStatus.Success,
+            ResourceType = "User",
+            ResourceId = resourceUserId.ToString(),
+            LinkPath = "/dashboard/users",
+            LinkText = "View Users"
+        }, cancellationToken);
     }
 
     private async Task<UserResponse> MapUserAsync(ApplicationUser user, CancellationToken cancellationToken)

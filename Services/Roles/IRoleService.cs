@@ -15,6 +15,7 @@ public interface IRoleService
 
     Task<Result<RoleResponse>> CreateRoleAsync(
         int organizationId,
+        int actorUserId,
         CreateRoleRequest request,
         CancellationToken cancellationToken = default);
 }

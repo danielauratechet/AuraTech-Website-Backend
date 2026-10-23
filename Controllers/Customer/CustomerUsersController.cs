@@ -29,7 +29,7 @@ public sealed class CustomerUsersController : BaseApiController
 
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateOrganizationUserRequest request, CancellationToken cancellationToken)
-        => FromResult(await _userService.UpdateAsync(User.GetOrganizationId(), id, request, cancellationToken));
+        => FromResult(await _userService.UpdateAsync(User.GetOrganizationId(), User.GetUserId(), id, request, cancellationToken));
 
     [HttpPost("{id:int}/deactivate")]
     public async Task<IActionResult> Deactivate(int id, CancellationToken cancellationToken)
@@ -37,5 +37,5 @@ public sealed class CustomerUsersController : BaseApiController
 
     [HttpPost("{id:int}/activate")]
     public async Task<IActionResult> Activate(int id, CancellationToken cancellationToken)
-        => FromResult(await _userService.ActivateAsync(User.GetOrganizationId(), id, cancellationToken));
+        => FromResult(await _userService.ActivateAsync(User.GetOrganizationId(), User.GetUserId(), id, cancellationToken));
 }

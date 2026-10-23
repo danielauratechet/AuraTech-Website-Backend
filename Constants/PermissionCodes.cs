@@ -24,6 +24,8 @@ public static class PermissionCodes
     public const string CampaignsWrite = "campaigns.write";
     public const string CampaignsLaunch = "campaigns.launch";
 
+    public const string AuditLogsRead = "audit-logs.read";
+
     public static readonly IReadOnlyList<(string Code, string Name, string Description)> Catalog =
     [
         (UsersRead, "Read users", "View users within the organization"),
@@ -43,6 +45,7 @@ public static class PermissionCodes
         (RegionsManage, "Manage regions", "Create, update, and activate/deactivate regions"),
         (CampaignsRead, "Read campaigns", "View campaigns and analytics"),
         (CampaignsWrite, "Write campaigns", "Create and update campaign drafts"),
-        (CampaignsLaunch, "Launch campaigns", "Launch a completed campaign draft")
+        (CampaignsLaunch, "Launch campaigns", "Launch a completed campaign draft"),
+        (AuditLogsRead, "Read audit logs", "View organization activity and audit log summaries")
     ];
 }

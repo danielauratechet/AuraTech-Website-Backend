@@ -132,6 +132,8 @@ public static class AuthServiceCollectionExtensions
                     ctx.User.Claims.Any(c =>
                         c.Type == AppClaimTypes.Permission &&
                         string.Equals(c.Value, PermissionCodes.CampaignsWrite, StringComparison.OrdinalIgnoreCase))));
+            options.AddPolicy(AuthPolicies.AuditLogsRead, policy =>
+                policy.Requirements.Add(new PermissionRequirement(PermissionCodes.AuditLogsRead)));
             options.AddPolicy(AuthPolicies.PlatformOrganization, policy =>
                 policy.Requirements.Add(new OrganizationTypeRequirement(OrganizationType.Platform)));
             options.AddPolicy(AuthPolicies.CustomerOrganization, policy =>

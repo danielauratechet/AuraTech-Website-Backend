@@ -1,4 +1,5 @@
 using AuratechBackend.Filters;
+using AuratechBackend.Services.Audit;
 using AuratechBackend.Services.Auth;
 using AuratechBackend.Services.Campaigns;
 using AuratechBackend.Services.CampaignTypes;
@@ -42,6 +43,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRegionService, RegionService>();
         services.AddScoped<ICampaignService, CampaignService>();
         services.AddScoped<ICampaignAnalyticsService, CampaignAnalyticsService>();
+        services.AddScoped<IAuditLogService, AuditLogService>();
 
         return services;
     }

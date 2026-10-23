@@ -16,11 +16,12 @@ public interface IOrganizationUserService
 
     Task<Result<UserResponse>> UpdateAsync(
         int organizationId,
+        int actorUserId,
         int userId,
         UpdateOrganizationUserRequest request,
         CancellationToken cancellationToken = default);
 
     Task<Result> DeactivateAsync(int organizationId, int actorUserId, int userId, CancellationToken cancellationToken = default);
 
-    Task<Result> ActivateAsync(int organizationId, int userId, CancellationToken cancellationToken = default);
+    Task<Result> ActivateAsync(int organizationId, int actorUserId, int userId, CancellationToken cancellationToken = default);
 }

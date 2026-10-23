@@ -11,11 +11,13 @@ public interface ICustomerKycService
 
     Task<Result<CustomerKycResponse>> CreateAsync(
         int organizationId,
+        int actorUserId,
         SubmitCustomerKycRequest request,
         CancellationToken cancellationToken = default);
 
     Task<Result<CustomerKycResponse>> UpdateAsync(
         int organizationId,
+        int actorUserId,
         SubmitCustomerKycRequest request,
         CancellationToken cancellationToken = default);
 
