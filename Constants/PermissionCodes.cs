@@ -26,6 +26,9 @@ public static class PermissionCodes
 
     public const string AuditLogsRead = "audit-logs.read";
 
+    public const string WalletRead = "wallet.read";
+    public const string WalletWrite = "wallet.write";
+
     public static readonly IReadOnlyList<(string Code, string Name, string Description)> Catalog =
     [
         (UsersRead, "Read users", "View users within the organization"),
@@ -46,6 +49,8 @@ public static class PermissionCodes
         (CampaignsRead, "Read campaigns", "View campaigns and analytics"),
         (CampaignsWrite, "Write campaigns", "Create and update campaign drafts"),
         (CampaignsLaunch, "Launch campaigns", "Launch a completed campaign draft"),
-        (AuditLogsRead, "Read audit logs", "View organization activity and audit log summaries")
+        (AuditLogsRead, "Read audit logs", "View organization activity and audit log summaries"),
+        (WalletRead, "Read wallet", "View wallet balance and transactions"),
+        (WalletWrite, "Write wallet", "Add funds and request withdrawals")
     ];
 }

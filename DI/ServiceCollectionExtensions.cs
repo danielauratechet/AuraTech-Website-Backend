@@ -4,11 +4,15 @@ using AuratechBackend.Services.Auth;
 using AuratechBackend.Services.Campaigns;
 using AuratechBackend.Services.CampaignTypes;
 using AuratechBackend.Services.Email;
+using AuratechBackend.Services.Activity;
 using AuratechBackend.Services.Kyc;
+using AuratechBackend.Services.Organizations;
 using AuratechBackend.Services.Regions;
 using AuratechBackend.Services.Roles;
 using AuratechBackend.Services.Storage;
+using AuratechBackend.Services.Payments;
 using AuratechBackend.Services.Users;
+using AuratechBackend.Services.Wallet;
 using FluentValidation;
 
 namespace AuratechBackend.DI;
@@ -44,6 +48,15 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICampaignService, CampaignService>();
         services.AddScoped<ICampaignAnalyticsService, CampaignAnalyticsService>();
         services.AddScoped<IAuditLogService, AuditLogService>();
+        services.AddScoped<IOrganizationProfileService, OrganizationProfileService>();
+        services.AddScoped<IRecentActivityService, RecentActivityService>();
+
+        services.Configure<StarpaySettings>(configuration.GetSection(StarpaySettings.SectionName));
+        services.AddHttpClient<IStarpayClient, StarpayClient>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
+        services.AddScoped<IWalletService, WalletService>();
 
         return services;
     }

@@ -561,6 +561,14 @@ namespace AuratechBackend.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("CompanyEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
@@ -571,6 +579,17 @@ namespace AuratechBackend.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
+
+                    b.Property<string>("LanguagePreference")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasDefaultValue("en-US");
+
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -592,6 +611,40 @@ namespace AuratechBackend.Data.Migrations
                     b.HasIndex("Type", "Name");
 
                     b.ToTable("Organizations", (string)null);
+                });
+
+            modelBuilder.Entity("AuratechBackend.Data.Entities.OrganizationWallet", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AvailableBalance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<int>("OrganizationId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId")
+                        .IsUnique();
+
+                    b.ToTable("OrganizationWallets", (string)null);
                 });
 
             modelBuilder.Entity("AuratechBackend.Data.Entities.Permission", b =>
@@ -688,6 +741,91 @@ namespace AuratechBackend.Data.Migrations
                     b.HasIndex("PermissionId");
 
                     b.ToTable("RolePermissions", (string)null);
+                });
+
+            modelBuilder.Entity("AuratechBackend.Data.Entities.WalletTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal?>("BalanceAfter")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTimeOffset?>("CompletedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CreatedByUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<int>("Direction")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Method")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("OrganizationId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("PaymentUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("StarpayBillRefNo")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("WalletId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("Reference")
+                        .IsUnique();
+
+                    b.HasIndex("StarpayBillRefNo")
+                        .IsUnique()
+                        .HasFilter("\"StarpayBillRefNo\" IS NOT NULL");
+
+                    b.HasIndex("WalletId");
+
+                    b.HasIndex("OrganizationId", "CreatedAtUtc");
+
+                    b.ToTable("WalletTransactions", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -938,6 +1076,17 @@ namespace AuratechBackend.Data.Migrations
                     b.Navigation("ReviewedByUser");
                 });
 
+            modelBuilder.Entity("AuratechBackend.Data.Entities.OrganizationWallet", b =>
+                {
+                    b.HasOne("AuratechBackend.Data.Entities.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
+                });
+
             modelBuilder.Entity("AuratechBackend.Data.Entities.RolePermission", b =>
                 {
                     b.HasOne("AuratechBackend.Data.Entities.Permission", "Permission")
@@ -955,6 +1104,33 @@ namespace AuratechBackend.Data.Migrations
                     b.Navigation("Permission");
 
                     b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("AuratechBackend.Data.Entities.WalletTransaction", b =>
+                {
+                    b.HasOne("AuratechBackend.Data.Entities.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AuratechBackend.Data.Entities.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AuratechBackend.Data.Entities.OrganizationWallet", "Wallet")
+                        .WithMany("Transactions")
+                        .HasForeignKey("WalletId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Organization");
+
+                    b.Navigation("Wallet");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -1029,6 +1205,11 @@ namespace AuratechBackend.Data.Migrations
                     b.Navigation("Roles");
 
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("AuratechBackend.Data.Entities.OrganizationWallet", b =>
+                {
+                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("AuratechBackend.Data.Entities.Permission", b =>

@@ -20,6 +20,20 @@ public sealed class OrganizationConfiguration : IEntityTypeConfiguration<Organiz
         builder.Property(x => x.PhoneNumber)
             .HasMaxLength(30);
 
+        builder.Property(x => x.Address)
+            .HasMaxLength(500);
+
+        builder.Property(x => x.CompanyEmail)
+            .HasMaxLength(256);
+
+        builder.Property(x => x.LogoUrl)
+            .HasMaxLength(2048);
+
+        builder.Property(x => x.LanguagePreference)
+            .HasMaxLength(10)
+            .IsRequired()
+            .HasDefaultValue("en-US");
+
         builder.Property(x => x.Type)
             .IsRequired();
 

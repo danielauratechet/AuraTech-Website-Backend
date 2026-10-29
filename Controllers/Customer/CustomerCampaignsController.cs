@@ -65,6 +65,7 @@ public sealed class CustomerCampaignsController : BaseApiController
         CancellationToken cancellationToken)
         => FromResult(await _campaignService.SaveStep1Async(
             User.GetOrganizationId(),
+            User.GetUserId(),
             id,
             request,
             cancellationToken));
@@ -77,6 +78,7 @@ public sealed class CustomerCampaignsController : BaseApiController
         CancellationToken cancellationToken)
         => FromResult(await _campaignService.SaveStep2Async(
             User.GetOrganizationId(),
+            User.GetUserId(),
             id,
             request,
             cancellationToken));
@@ -89,6 +91,7 @@ public sealed class CustomerCampaignsController : BaseApiController
         CancellationToken cancellationToken)
         => FromResult(await _campaignService.SaveStep3Async(
             User.GetOrganizationId(),
+            User.GetUserId(),
             id,
             request,
             cancellationToken));

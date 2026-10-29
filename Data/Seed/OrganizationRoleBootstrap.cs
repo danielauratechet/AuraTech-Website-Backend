@@ -115,7 +115,9 @@ public static class OrganizationRoleBootstrap
                 PermissionCodes.CampaignsRead,
                 PermissionCodes.CampaignsWrite,
                 PermissionCodes.CampaignsLaunch,
-                PermissionCodes.AuditLogsRead
+                PermissionCodes.AuditLogsRead,
+                PermissionCodes.WalletRead,
+                PermissionCodes.WalletWrite
             ],
             Roles.CustomerUser =>
             [
@@ -123,7 +125,8 @@ public static class OrganizationRoleBootstrap
                 PermissionCodes.KycRead,
                 PermissionCodes.CampaignTypesRead,
                 PermissionCodes.RegionsRead,
-                PermissionCodes.CampaignsRead
+                PermissionCodes.CampaignsRead,
+                PermissionCodes.WalletRead
             ],
             _ => []
         };

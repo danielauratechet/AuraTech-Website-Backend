@@ -25,18 +25,21 @@ public interface ICampaignService
 
     Task<Result<CampaignResponse>> SaveStep1Async(
         int organizationId,
+        int actorUserId,
         int campaignId,
         SaveCampaignStep1Request request,
         CancellationToken cancellationToken = default);
 
     Task<Result<CampaignResponse>> SaveStep2Async(
         int organizationId,
+        int actorUserId,
         int campaignId,
         SaveCampaignStep2Request request,
         CancellationToken cancellationToken = default);
 
     Task<Result<CampaignResponse>> SaveStep3Async(
         int organizationId,
+        int actorUserId,
         int campaignId,
         SaveCampaignStep3Request request,
         CancellationToken cancellationToken = default);

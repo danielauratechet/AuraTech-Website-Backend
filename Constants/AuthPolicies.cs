@@ -2,6 +2,7 @@ namespace AuratechBackend.Constants;
 
 public static class AuthPolicies
 {
+    public const string OrgManage = "Permission:org.manage";
     public const string UsersManage = "Permission:users.manage";
     public const string UsersRead = "Permission:users.read";
     public const string RolesManage = "Permission:roles.manage";
@@ -27,4 +28,7 @@ public static class AuthPolicies
     public const string CampaignsPresign = "Permission:campaigns.presign";
 
     public const string AuditLogsRead = "Permission:audit-logs.read";
+
+    public const string WalletRead = "Permission:wallet.read";
+    public const string WalletWrite = "Permission:wallet.write";
 }

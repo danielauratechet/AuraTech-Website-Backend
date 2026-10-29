@@ -89,6 +89,8 @@ public static class AuthServiceCollectionExtensions
 
         services.AddAuthorization(options =>
         {
+            options.AddPolicy(AuthPolicies.OrgManage, policy =>
+                policy.Requirements.Add(new PermissionRequirement(PermissionCodes.OrgManage)));
             options.AddPolicy(AuthPolicies.UsersManage, policy =>
                 policy.Requirements.Add(new PermissionRequirement(PermissionCodes.UsersManage)));
             options.AddPolicy(AuthPolicies.UsersRead, policy =>
@@ -134,6 +136,10 @@ public static class AuthServiceCollectionExtensions
                         string.Equals(c.Value, PermissionCodes.CampaignsWrite, StringComparison.OrdinalIgnoreCase))));
             options.AddPolicy(AuthPolicies.AuditLogsRead, policy =>
                 policy.Requirements.Add(new PermissionRequirement(PermissionCodes.AuditLogsRead)));
+            options.AddPolicy(AuthPolicies.WalletRead, policy =>
+                policy.Requirements.Add(new PermissionRequirement(PermissionCodes.WalletRead)));
+            options.AddPolicy(AuthPolicies.WalletWrite, policy =>
+                policy.Requirements.Add(new PermissionRequirement(PermissionCodes.WalletWrite)));
             options.AddPolicy(AuthPolicies.PlatformOrganization, policy =>
                 policy.Requirements.Add(new OrganizationTypeRequirement(OrganizationType.Platform)));
             options.AddPolicy(AuthPolicies.CustomerOrganization, policy =>

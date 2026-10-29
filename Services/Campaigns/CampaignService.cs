@@ -14,9 +14,6 @@ namespace AuratechBackend.Services.Campaigns;
 
 public sealed class CampaignService : ICampaignService
 {
-    private const decimal InitialDepositRequired = 1500m;
-    private const decimal DaysPerMonthEstimate = 30.5m;
-
     private readonly AppDbContext _db;
     private readonly IAuditLogService _auditLogService;
 
@@ -123,6 +120,7 @@ public sealed class CampaignService : ICampaignService
 
     public async Task<Result<CampaignResponse>> SaveStep1Async(
         int organizationId,
+        int actorUserId,
         int campaignId,
         SaveCampaignStep1Request request,
         CancellationToken cancellationToken = default)
@@ -150,6 +148,14 @@ public sealed class CampaignService : ICampaignService
 
         await _db.SaveChangesAsync(cancellationToken);
 
+        await WriteCampaignAuditAsync(
+            organizationId,
+            actorUserId,
+            AuditActionCodes.CampaignUpdated,
+            $"updated \"{campaign.Name}\" campaign.",
+            campaign,
+            cancellationToken);
+
         return Result<CampaignResponse>.Success(
             await MapResponseAsync(campaign.Id, organizationId, null, null, cancellationToken),
             "Step 1 saved successfully.");
@@ -157,6 +163,7 @@ public sealed class CampaignService : ICampaignService
 
     public async Task<Result<CampaignResponse>> SaveStep2Async(
         int organizationId,
+        int actorUserId,
         int campaignId,
         SaveCampaignStep2Request request,
         CancellationToken cancellationToken = default)
@@ -227,6 +234,14 @@ public sealed class CampaignService : ICampaignService
 
         await _db.SaveChangesAsync(cancellationToken);
 
+        await WriteCampaignAuditAsync(
+            organizationId,
+            actorUserId,
+            AuditActionCodes.CampaignUpdated,
+            $"updated \"{campaign.Name}\" campaign.",
+            campaign,
+            cancellationToken);
+
         return Result<CampaignResponse>.Success(
             await MapResponseAsync(campaign.Id, organizationId, null, null, cancellationToken),
             "Step 2 saved successfully.");
@@ -234,6 +249,7 @@ public sealed class CampaignService : ICampaignService
 
     public async Task<Result<CampaignResponse>> SaveStep3Async(
         int organizationId,
+        int actorUserId,
         int campaignId,
         SaveCampaignStep3Request request,
         CancellationToken cancellationToken = default)
@@ -263,6 +279,14 @@ public sealed class CampaignService : ICampaignService
         campaign.UpdatedAtUtc = DateTimeOffset.UtcNow;
 
         await _db.SaveChangesAsync(cancellationToken);
+
+        await WriteCampaignAuditAsync(
+            organizationId,
+            actorUserId,
+            AuditActionCodes.CampaignUpdated,
+            $"updated \"{campaign.Name}\" campaign.",
+            campaign,
+            cancellationToken);
 
         return Result<CampaignResponse>.Success(
             await MapResponseAsync(campaign.Id, organizationId, null, null, cancellationToken),
@@ -307,7 +331,7 @@ public sealed class CampaignService : ICampaignService
             TargetLocationNamesAm = targets.Select(t => t.Region.NameAm).ToList(),
             DailyBudget = campaign.DailyBudget,
             EstimatedMonthlySpend = campaign.DailyBudget.HasValue
-                ? Math.Round(campaign.DailyBudget.Value * DaysPerMonthEstimate, 2)
+                ? Math.Round(campaign.DailyBudget.Value * CampaignFunding.DaysPerMonthEstimate, 2)
                 : null,
             ScheduleType = campaign.ScheduleType,
             EndDate = campaign.EndDate,
@@ -315,7 +339,7 @@ public sealed class CampaignService : ICampaignService
             Description = campaign.Description,
             CallToAction = campaign.CallToAction,
             CreativeImageUrl = campaign.CreativeImageUrl,
-            InitialDepositRequired = InitialDepositRequired
+            InitialDepositRequired = CampaignFunding.RequiredBalance(campaign, DateOnly.FromDateTime(DateTime.UtcNow))
         }, "Campaign summary retrieved successfully.");
     }
 
@@ -343,6 +367,19 @@ public sealed class CampaignService : ICampaignService
         if (validationErrors.Count > 0)
         {
             return Result<CampaignResponse>.ValidationFailure(validationErrors);
+        }
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var requiredBalance = CampaignFunding.RequiredBalance(campaign, today);
+        var availableBalance = await _db.OrganizationWallets.AsNoTracking()
+            .Where(w => w.OrganizationId == organizationId)
+            .Select(w => (decimal?)w.AvailableBalance)
+            .FirstOrDefaultAsync(cancellationToken) ?? 0m;
+
+        if (availableBalance < requiredBalance)
+        {
+            return Result<CampaignResponse>.Conflict(
+                $"Available balance is {availableBalance.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)} ETB. This campaign requires {requiredBalance.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)} ETB.");
         }
 
         campaign.Status = CampaignStatus.Live;
@@ -570,6 +607,11 @@ public sealed class CampaignService : ICampaignService
         else if (campaign.ScheduleType == CampaignScheduleType.EndDate && !campaign.EndDate.HasValue)
         {
             errors.Add(new ValidationError(nameof(campaign.EndDate), "End date is required for EndDate schedule."));
+        }
+        else if (campaign.ScheduleType == CampaignScheduleType.EndDate
+                 && campaign.EndDate < DateOnly.FromDateTime(DateTime.UtcNow))
+        {
+            errors.Add(new ValidationError(nameof(campaign.EndDate), "End date must be today or a future date."));
         }
 
         if (string.IsNullOrWhiteSpace(campaign.Headline))

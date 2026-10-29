@@ -3,8 +3,14 @@ namespace AuratechBackend.Constants;
 public static class AuditActionCodes
 {
     public const string CampaignLaunched = "campaign.launched";
+    public const string CampaignUpdated = "campaign.updated";
     public const string CampaignPaused = "campaign.paused";
     public const string CampaignResumed = "campaign.resumed";
+
+    public const string BillingDeposited = "billing.deposited";
+    public const string BillingWithdrawn = "billing.withdrawn";
+
+    public const string OrganizationProfileUpdated = "organization.profile.updated";
 
     public const string UserInvited = "user.invited";
     public const string UserUpdated = "user.updated";

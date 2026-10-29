@@ -44,6 +44,10 @@ public class AppDbContext : IdentityDbContext<
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
+    public DbSet<OrganizationWallet> OrganizationWallets => Set<OrganizationWallet>();
+
+    public DbSet<WalletTransaction> WalletTransactions => Set<WalletTransaction>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

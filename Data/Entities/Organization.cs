@@ -10,6 +10,14 @@ public class Organization
 
     public string? PhoneNumber { get; set; }
 
+    public string? Address { get; set; }
+
+    public string? CompanyEmail { get; set; }
+
+    public string? LogoUrl { get; set; }
+
+    public string LanguagePreference { get; set; } = "en-US";
+
     public OrganizationType Type { get; set; }
 
     public bool IsActive { get; set; } = true;

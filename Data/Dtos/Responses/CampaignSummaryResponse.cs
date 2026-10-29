@@ -34,5 +34,5 @@ public sealed class CampaignSummaryResponse
 
     public string? CreativeImageUrl { get; init; }
 
-    public decimal InitialDepositRequired { get; init; } = 1500m;
+    public decimal InitialDepositRequired { get; init; }
 }
