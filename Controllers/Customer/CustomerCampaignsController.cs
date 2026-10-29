@@ -5,6 +5,7 @@ using AuratechBackend.Data.Dtos.Requests;
 using AuratechBackend.Data.Dtos.Responses;
 using AuratechBackend.Helpers;
 using AuratechBackend.Services.Campaigns;
+using AuratechBackend.Services.ConversionTracking;
 using AuratechBackend.Services.Storage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,15 +17,18 @@ namespace AuratechBackend.Controllers.Customer;
 public sealed class CustomerCampaignsController : BaseApiController
 {
     private readonly ICampaignService _campaignService;
+    private readonly IConversionTrackingService _conversionTrackingService;
     private readonly ISupabaseStorageService _supabaseStorage;
     private readonly ILogger<CustomerCampaignsController> _logger;
 
     public CustomerCampaignsController(
         ICampaignService campaignService,
+        IConversionTrackingService conversionTrackingService,
         ISupabaseStorageService supabaseStorage,
         ILogger<CustomerCampaignsController> logger)
     {
         _campaignService = campaignService;
+        _conversionTrackingService = conversionTrackingService;
         _supabaseStorage = supabaseStorage;
         _logger = logger;
     }
@@ -151,6 +155,18 @@ public sealed class CustomerCampaignsController : BaseApiController
                 StatusCodes.Status500InternalServerError));
         }
     }
+
+    [HttpGet("{id:int}/conversion-analytics")]
+    [Authorize(Policy = AuthPolicies.CampaignsRead)]
+    public async Task<IActionResult> ConversionAnalytics(
+        int id,
+        [FromQuery] CampaignConversionAnalyticsQuery query,
+        CancellationToken cancellationToken)
+        => FromResult(await _conversionTrackingService.GetCampaignAnalyticsAsync(
+            User.GetOrganizationId(),
+            id,
+            query,
+            cancellationToken));
 
     [HttpPost("{id:int}/launch")]
     [Authorize(Policy = AuthPolicies.CampaignsLaunch)]

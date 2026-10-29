@@ -48,6 +48,8 @@ public class AppDbContext : IdentityDbContext<
 
     public DbSet<WalletTransaction> WalletTransactions => Set<WalletTransaction>();
 
+    public DbSet<ConversionTracking> ConversionTrackings => Set<ConversionTracking>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

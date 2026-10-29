@@ -504,6 +504,63 @@ namespace AuratechBackend.Data.Migrations
                     b.ToTable("CampaignTypes", (string)null);
                 });
 
+            modelBuilder.Entity("AuratechBackend.Data.Entities.ConversionTracking", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ClickThroughWindowDays")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ConversionType")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("ConversionValueEtb")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("CountMode")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("GoalName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("InstallMethod")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("OrganizationId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TrackingCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId")
+                        .IsUnique();
+
+                    b.HasIndex("TrackingCode")
+                        .IsUnique();
+
+                    b.ToTable("ConversionTrackings", (string)null);
+                });
+
             modelBuilder.Entity("AuratechBackend.Data.Entities.CustomerKyc", b =>
                 {
                     b.Property<int>("Id")
@@ -1056,6 +1113,17 @@ namespace AuratechBackend.Data.Migrations
                     b.Navigation("Campaign");
 
                     b.Navigation("Region");
+                });
+
+            modelBuilder.Entity("AuratechBackend.Data.Entities.ConversionTracking", b =>
+                {
+                    b.HasOne("AuratechBackend.Data.Entities.Organization", "Organization")
+                        .WithOne()
+                        .HasForeignKey("AuratechBackend.Data.Entities.ConversionTracking", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
                 });
 
             modelBuilder.Entity("AuratechBackend.Data.Entities.CustomerKyc", b =>

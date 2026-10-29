@@ -3,6 +3,7 @@ using AuratechBackend.Services.Audit;
 using AuratechBackend.Services.Auth;
 using AuratechBackend.Services.Campaigns;
 using AuratechBackend.Services.CampaignTypes;
+using AuratechBackend.Services.ConversionTracking;
 using AuratechBackend.Services.Email;
 using AuratechBackend.Services.Activity;
 using AuratechBackend.Services.Kyc;
@@ -47,6 +48,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRegionService, RegionService>();
         services.AddScoped<ICampaignService, CampaignService>();
         services.AddScoped<ICampaignAnalyticsService, CampaignAnalyticsService>();
+        services.AddScoped<IConversionTrackingService, ConversionTrackingService>();
         services.AddScoped<IAuditLogService, AuditLogService>();
         services.AddScoped<IOrganizationProfileService, OrganizationProfileService>();
         services.AddScoped<IRecentActivityService, RecentActivityService>();
